@@ -1,25 +1,24 @@
-const http = require('http');
-const modulo1 = require('./modulo1');
-const modulo2 = require('./modulo2');
-const modulo3 = require('./modulo3');
+const express = require('express');
+const findFreePort = require('./modulo1');
+const getDeviceInfo = require('./modulo2');
+const openTextFile = require('./modulo3');
 
-const server = http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json' });
+const app = express();
+const port = await findFreePort();
 
-  if (req.url === '/freeport') {
-    const port = await modulo1();
-    res.end(JSON.stringify({ port }));
-  } else if (req.url === '/systeminfo') {
-    const systemInfo = modulo2();
-    res.end(JSON.stringify(systemInfo));
-  } else if (req.url === '/readfile') {
-    const fileContent = await modulo3('./texto.txt');
-    res.end(JSON.stringify({ fileContent }));
-  } else {
-    res.end(JSON.stringify({ message: 'Not Found' }));
-  }
+app.get('/', async (req, res) => {
+  const deviceInfo = getDeviceInfo();
+  const fileContent = await openTextFile('path/to/texto.txt'); // Cambiar la ruta
+
+  const jsonData = {
+    port: port,
+    deviceInfo,
+    fileContent,
+  };
+
+  res.json(jsonData);
 });
 
-server.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.listen(port, () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
 });
